@@ -532,6 +532,7 @@
       currentUserId = "u-admin";
       renderHeader();
       renderAdmin();
+      go("admin");
       toast("Signed in as Administrator (Taylor Morgan)");
       return;
     }
