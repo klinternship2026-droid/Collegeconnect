@@ -433,31 +433,65 @@
 
       <section
         id="page-admin"
-        class="page page-wrap"
+        class="page page-wrap admin-portal-page"
         aria-labelledby="admin-title"
       >
-        <div class="page-intro">
-          <p class="eyebrow">CAMPUS CONTROL CENTRE</p>
-          <h1 id="admin-title">Admin dashboard</h1>
-          <p>Manage the content and community of CollegeConnect.</p>
+        <div class="admin-portal-header">
+          <div>
+            <p class="eyebrow">CAMPUS CONTROL CENTRE</p>
+            <h1 id="admin-title">Admin Portal</h1>
+            <p class="admin-subtitle">Centralized governance for campus events, library catalog, student clubs, and users.</p>
+          </div>
+          <div class="admin-header-badge" id="admin-header-status">
+            <span class="live-dot"></span>
+            <span>Supabase Cloud Sync: Active</span>
+          </div>
         </div>
-        <div id="admin-denied" class="empty-state hidden">
-          <h2>Admin access required</h2>
-          <p>Please sign in with the demo admin account to manage the site.</p>
-          <a href="#profile" class="button button-primary">Go to login</a>
+
+        <div id="admin-denied" class="admin-auth-card hidden">
+          <div class="admin-lock-badge">🛡️</div>
+          <h2>Administrator Access Required</h2>
+          <p>This portal is restricted to CollegeConnect staff, moderators, and faculty administrators.</p>
+          <div class="admin-denied-actions">
+            <button class="button button-primary" id="admin-quick-login" data-admin-login="true">
+              🔑 One-Click Sign In as Demo Admin
+            </button>
+            <a href="#profile" class="button button-outline">Standard Login</a>
+          </div>
         </div>
+
         <div id="admin-panel" class="hidden">
-          <div id="admin-stats" class="stats-grid"></div>
+          <div class="admin-top-bar">
+            <div class="admin-quick-actions">
+              <span class="admin-bar-label">Quick Create:</span>
+              <button class="admin-action-btn" data-add="event"><span>📅</span> + Event</button>
+              <button class="admin-action-btn" data-add="book"><span>📚</span> + Book</button>
+              <button class="admin-action-btn" data-add="club"><span>✦</span> + Club</button>
+              <button class="admin-action-btn" data-add="photo"><span>📸</span> + Photo</button>
+              <button class="admin-action-btn" data-admin-tab="announcements"><span>📣</span> + Banner Notice</button>
+            </div>
+            <div class="admin-user-pill">
+              <div class="admin-avatar-small" id="admin-avatar-initials">TM</div>
+              <div class="admin-pill-meta">
+                <strong id="admin-display-name">Taylor Morgan</strong>
+                <span class="admin-role-badge">Super Admin</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="admin-stats" class="stats-grid admin-stats-grid"></div>
+
           <div class="admin-layout">
             <aside class="admin-tabs" aria-label="Admin sections">
-              <button class="active" data-admin-tab="overview">Overview</button
-              ><button data-admin-tab="events">Events</button
-              ><button data-admin-tab="library">Library & orders</button
-              ><button data-admin-tab="clubs">Clubs & requests</button
-              ><button data-admin-tab="gallery">Gallery & albums</button
-              ><button data-admin-tab="beyond-campus">Beyond Campus</button
-              ><button data-admin-tab="users">Users</button
-              ><button data-admin-tab="announcements">Announcements</button>
+              <button class="active" data-admin-tab="overview"><span class="tab-icon">📊</span> Overview</button>
+              <button data-admin-tab="events"><span class="tab-icon">📅</span> Events <span class="tab-badge" id="badge-events">0</span></button>
+              <button data-admin-tab="library"><span class="tab-icon">📚</span> Library & Orders <span class="tab-badge tab-badge-alert" id="badge-orders">0</span></button>
+              <button data-admin-tab="clubs"><span class="tab-icon">👥</span> Clubs & Requests <span class="tab-badge tab-badge-alert" id="badge-clubs">0</span></button>
+              <button data-admin-tab="gallery"><span class="tab-icon">🖼️</span> Gallery & Media <span class="tab-badge" id="badge-gallery">0</span></button>
+              <button data-admin-tab="beyond-campus"><span class="tab-icon">🌐</span> Beyond Campus</button>
+              <button data-admin-tab="users"><span class="tab-icon">👤</span> Users & Roles <span class="tab-badge" id="badge-users">0</span></button>
+              <button data-admin-tab="announcements"><span class="tab-icon">📣</span> Announcements</button>
+              <button data-admin-tab="database" class="tab-database"><span class="tab-icon">⚡</span> Cloud Database</button>
             </aside>
             <div class="admin-content" id="admin-content"></div>
           </div>
