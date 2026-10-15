@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#123b4a" />
+    <title>CollegeConnect | Campus life, connected</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="data.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="#home" aria-label="CollegeConnect home">
+        <span class="brand-mark" aria-hidden="true">C<span>+</span></span>
+        <span>College<span class="brand-light">Connect</span></span>
+      </a>
+      <button
+        id="menu-toggle"
+        class="menu-toggle"
+        aria-label="Toggle navigation"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+      <nav id="main-nav" class="main-nav" aria-label="Main navigation">
+        <a href="#home" data-nav="home">Home</a>
+        <a href="#events" data-nav="events">Events</a>
+        <a href="#library" data-nav="library">Library</a>
+        <a href="#clubs" data-nav="clubs">Clubs</a>
+        <a href="#gallery" data-nav="gallery">Gallery</a>
+        <a href="#beyond-campus" data-nav="beyond-campus">Beyond Campus</a>
+        <a href="#profile" data-nav="profile" id="profile-nav">Login</a>
+        <a href="#admin" data-nav="admin" id="admin-nav" class="hidden"
+          >Admin</a
+        >
+      </nav>
+    </header>
+
+    <div
+      id="announcement-banner"
+      class="announcement-banner hidden"
+      role="status"
+    ></div>
+    <main id="main" tabindex="-1">
+      <section id="page-home" class="page active" aria-labelledby="home-title">
+        <div class="hero">
+          <div class="hero-content">
+            <p class="eyebrow">YOUR CAMPUS. YOUR COMMUNITY.</p>
+            <h1 id="home-title">
+              Find your people.<br /><span>Shape your future.</span>
+            </h1>
+            <p class="hero-copy">
+              One place for campus events, library discoveries, student clubs
+              and the moments that make university unforgettable.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#events"
+                >Explore events <span aria-hidden="true">→</span></a
+              >
+              <a class="button button-glass" href="#clubs"
+                >Find your community</a
+              >
+            </div>
+            <div class="hero-proof">
+              <span class="avatar-stack" aria-hidden="true"
+                ><i>A</i><i>M</i><i>J</i><i>+</i></span
+              ><span
+                ><strong id="hero-user-count">5</strong> campus members already
+                connected</span
+              >
+            </div>
+          </div>
+          <div
+            class="hero-art"
+            aria-label="College campus with students"
+            role="img"
+          >
+            <div class="hero-art-card">
+              <span class="art-icon">✦</span
+              ><span><b>Campus life,</b><br />all in one place</span>
+            </div>
+          </div>
+        </div>
+        <div class="page-wrap">
+          <div class="welcome-strip">
+            <div>
+              <span class="live-dot"></span><strong>Campus noticeboard</strong
+              ><span class="muted"> — the latest, all together.</span>
+            </div>
+            <a href="#events" class="text-link">See what's happening →</a>
+          </div>
+          <section class="section-block">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">MARK YOUR CALENDAR</p>
+                <h2>Coming up on campus</h2>
+                <p class="muted">Good things happen when you show up.</p>
+              </div>
+              <a href="#events" class="text-link">All events →</a>
+            </div>
+            <div id="home-events" class="card-grid"></div>
+          </section>
+          <section class="section-block split-section">
+            <div>
+              <p class="eyebrow">A LITTLE SOMETHING TO READ</p>
+              <h2>Fresh from the library</h2>
+              <p class="muted">
+                Your next favourite book might be waiting here.
+              </p>
+              <a class="button button-dark" href="#library"
+                >Browse the library</a
+              >
+            </div>
+            <div id="home-books" class="book-mini-grid"></div>
+          </section>
+          <section class="section-block gallery-promo">
+            <div>
+              <p class="eyebrow">LIFE BETWEEN LECTURES</p>
+              <h2>Little moments. Big memories.</h2>
+              <p class="muted">
+                See what your campus community has been up to.
+              </p>
+              <a class="button button-primary" href="#gallery"
+                >Explore the gallery</a
+              >
+            </div>
+            <div id="home-gallery" class="promo-photo-grid"></div>
+          </section>
+        </div>
+      </section>
+
+      <section
+        id="page-events"
+        class="page page-wrap"
+        aria-labelledby="events-title"
+      >
+        <div class="page-intro">
+          <p class="eyebrow">MAKE IT HAPPEN</p>
+          <h1 id="events-title">Campus events</h1>
+          <p>
+            Workshops, performances, meet-ups and moments worth remembering.
+          </p>
+        </div>
+        <div class="toolbar">
+          <label class="search-field"
+            ><span aria-hidden="true">⌕</span
+            ><input
+              id="event-search"
+              type="search"
+              placeholder="Search events…"
+              aria-label="Search events" /></label
+          ><select id="event-category" aria-label="Filter events by category">
+            <option value="">All categories</option></select
+          ><input
+            id="event-date"
+            type="date"
+            aria-label="Filter events by date"
+          /><button id="event-reset" class="button button-outline">
+            Reset
+          </button>
+        </div>
+        <div id="events-list" class="card-grid"></div>
+        <p id="events-empty" class="empty-state hidden">
+          No events match those filters. Try a different search.
+        </p>
+      </section>
+
+      <section
+        id="page-library"
+        class="page page-wrap"
+        aria-labelledby="library-title"
+      >
+        <div class="page-intro">
+          <p class="eyebrow">TURN THE NEXT PAGE</p>
+          <h1 id="library-title">The campus library</h1>
+          <p>Discover a new idea, reserve your next read, and keep learning.</p>
+        </div>
+        <div class="toolbar">
+          <label class="search-field"
+            ><span aria-hidden="true">⌕</span
+            ><input
+              id="book-search"
+              type="search"
+              placeholder="Search title or author…"
+              aria-label="Search books" /></label
+          ><select id="book-category" aria-label="Filter books by category">
+            <option value="">All categories</option></select
+          ><select id="book-availability" aria-label="Filter by availability">
+            <option value="">Any availability</option>
+            <option value="Available">Available</option>
+            <option value="Limited">Limited</option>
+            <option value="Unavailable">Unavailable</option>
+          </select>
+        </div>
+        <div id="books-list" class="book-grid"></div>
+        <section class="form-panel" id="reserve-panel">
+          <div>
+            <p class="eyebrow">SAVE YOUR NEXT READ</p>
+            <h2>Reserve a book</h2>
+            <p class="muted">
+              Choose a title and a pickup date. Your request will appear in your
+              profile.
+            </p>
+          </div>
+          <form id="reserve-form" class="form-grid">
+            <label
+              >Book<select id="reserve-book" required>
+                <option value="">Choose a book</option>
+              </select></label
+            ><label
+              >Pickup date<input id="pickup-date" type="date" required /></label
+            ><label class="full-width"
+              >Note (optional)<input
+                id="reserve-note"
+                maxlength="180"
+                placeholder="Anything the library team should know?"
+            /></label>
+            <div class="full-width">
+              <button class="button button-primary" type="submit">
+                Submit reservation
+              </button>
+            </div>
+          </form>
+        </section>
+        <p id="library-empty" class="empty-state hidden">
+          No books match your search.
+        </p>
+        <div id="library-announcements" class="notice-list"></div>
+      </section>
+
+      <section
+        id="page-clubs"
+        class="page page-wrap"
+        aria-labelledby="clubs-title"
+      >
+        <div class="page-intro">
+          <p class="eyebrow">FIND YOUR PEOPLE</p>
+          <h1 id="clubs-title">Clubs & communities</h1>
+          <p>
+            Try something new, build something together, and meet people who get
+            it.
+          </p>
+        </div>
+        <label class="search-field standalone-search"
+          ><span aria-hidden="true">⌕</span
+          ><input
+            id="club-search"
+            type="search"
+            placeholder="Search clubs or interests…"
+            aria-label="Search clubs"
+        /></label>
+        <div id="clubs-list" class="club-grid"></div>
+        <p id="clubs-empty" class="empty-state hidden">
+          No clubs match your search.
+        </p>
+        <section id="club-detail" class="form-panel hidden"></section>
+      </section>
+
+      <section id="page-beyond-campus" class="page page-wrap" aria-labelledby="beyond-campus-title">
+        <div class="page-intro">
+          <p class="eyebrow">BEYOND OUR CAMPUS</p>
+          <h1 id="beyond-campus-title">Beyond Campus</h1>
+          <p>Discover inter-college competitions, sports tournaments, cultural festivals and other major events happening around the region.</p>
+        </div>
+        <div class="welcome-strip"><div><span class="live-dot"></span><strong>Regional events & student opportunities</strong><span class="muted"> — add confirmed details and photos through Admin.</span></div></div>
+        <div id="external-events-list" class="external-events-grid"></div>
+        <p id="external-events-empty" class="empty-state hidden">No external events have been added yet. Check back soon.</p>
+      </section>
+
+      <section
+        id="page-gallery"
+        class="page page-wrap"
+        aria-labelledby="gallery-title"
+      >
+        <div class="page-intro">
+          <p class="eyebrow">CAMPUS, THROUGH YOUR EYES</p>
+          <h1 id="gallery-title">The campus gallery</h1>
+          <p>
+            Snapshots of the people, places and experiences that bring us
+            together.
+          </p>
+        </div>
+        <div class="toolbar">
+          <label class="search-field"
+            ><span aria-hidden="true">⌕</span
+            ><input
+              id="gallery-search"
+              type="search"
+              placeholder="Search photos or captions…"
+              aria-label="Search photos" /></label
+          ><select id="gallery-category" aria-label="Filter photos">
+            <option value="">All albums & categories</option>
+          </select>
+        </div>
+        <div id="gallery-grid" class="gallery-grid"></div>
+        <p id="gallery-empty" class="empty-state hidden">
+          No photos found. Try another category.
+        </p>
+      </section>
+
+      <section
+        id="page-profile"
+        class="page page-wrap"
+        aria-labelledby="profile-title"
+      >
+        <div id="login-panel" class="login-layout">
+          <div class="login-intro">
+            <p class="eyebrow">WELCOME TO YOUR CAMPUS</p>
+            <h1>Good to have<br />you here.</h1>
+            <p>
+              Sign in to manage your events, book reservations and club
+              memberships.
+            </p>
+            <div class="demo-accounts">
+              <h3>Try a demo account</h3>
+              <button type="button" class="demo-account" data-demo="student">
+                <span>🎓</span
+                ><span
+                  ><b>Student account</b
+                  ><small>maya.student · Student</small></span
+                ><span>→</span></button
+              ><button type="button" class="demo-account" data-demo="admin">
+                <span>🛠️</span
+                ><span
+                  ><b>Admin account</b><small>admin.demo · Admin</small></span
+                ><span>→</span></button
+              ><button type="button" class="demo-account" data-demo="leader">
+                <span>🎨</span
+                ><span
+                  ><b>Club leader account</b
+                  ><small>alex.leader · Club Leader</small></span
+                ><span>→</span>
+              </button>
+            </div>
+          </div>
+          <div class="login-card">
+            <p class="eyebrow">DEMO ACCESS</p>
+            <h2 id="login-heading">Sign in</h2>
+            <p class="muted">No real passwords or personal data are used.</p>
+            <form id="login-form" class="stack-form">
+              <label
+                >Username<input
+                  id="login-username"
+                  autocomplete="username"
+                  required
+                  placeholder="e.g. maya.student" /></label
+              ><label
+                >Display name (for sign-up)<input
+                  id="signup-name"
+                  placeholder="Your name (optional)" /></label
+              ><label
+                >Role<select id="signup-role">
+                  <option value="student">Student</option>
+                  <option value="leader">Club Leader</option>
+                </select></label
+              >
+              <div class="button-row">
+                <button
+                  type="submit"
+                  class="button button-primary"
+                  id="login-submit"
+                >
+                  Sign in / Create demo account
+                </button>
+              </div>
+            </form>
+            <p class="fine-print">
+              This is a local front-end demonstration. Do not enter real
+              personal information.
+            </p>
+          </div>
+        </div>
+        <div id="profile-panel" class="hidden">
+          <div class="page-intro">
+            <p class="eyebrow">YOUR CAMPUS SPACE</p>
+            <h1 id="profile-title">My profile</h1>
+            <p>Keep your details and campus activity in one place.</p>
+          </div>
+          <div class="profile-layout">
+            <aside class="profile-side">
+              <div class="profile-avatar" id="profile-avatar">U</div>
+              <h2 id="profile-display-name">Campus member</h2>
+              <p id="profile-role-label" class="muted">Student</p>
+              <div class="profile-side-links">
+                <a href="#profile" data-profile-tab="details">Profile details</a
+                ><a href="#profile" data-profile-tab="activity">My activity</a
+                ><a href="#profile" data-profile-tab="preferences"
+                  >Notifications</a
+                ><button id="logout-button" class="button button-outline">
+                  Log out
+                </button>
+              </div>
+            </aside>
+            <div class="profile-content">
+              <section id="profile-details-section" class="profile-section">
+                <h2>Profile details</h2>
+                <form id="profile-form" class="form-grid">
+                  <label
+                    >Full name<input
+                      id="profile-name"
+                      required
+                      maxlength="80" /></label
+                  ><label
+                    >Profile photo URL<input
+                      id="profile-photo"
+                      type="url"
+                      placeholder="https://…" /></label
+                  ><label
+                    >Student ID<input
+                      id="profile-student-id"
+                      maxlength="40" /></label
+                  ><label
+                    >Email<input
+                      id="profile-email"
+                      type="email"
+                      placeholder="demo@example.edu" /></label
+                  ><label
+                    >Faculty<input id="profile-faculty" maxlength="80" /></label
+                  ><label
+                    >Year of study<select id="profile-year">
+                      <option value="">Choose year</option>
+                      <option>Year 1</option>
+                      <option>Year 2</option>
+                      <option>Year 3</option>
+                      <option>Year 4</option>
+                      <option>Postgraduate</option>
+                    </select></label
+                  >
+                  <div class="full-width">
+                    <button class="button button-primary" type="submit">
+                      Save profile
+                    </button>
+                  </div>
+                </form>
+              </section>
+              <section id="profile-activity-section" class="profile-section">
+                <h2>My campus activity</h2>
+                <div id="profile-activity"></div>
+              </section>
+              <section id="profile-preferences-section" class="profile-section">
+                <h2>Notification preferences</h2>
+                <form id="preferences-form" class="preferences-form">
+                  <label
+                    ><input type="checkbox" id="pref-events" /> Event updates
+                    and reminders</label
+                  ><label
+                    ><input type="checkbox" id="pref-library" /> Library updates
+                    and reservation status</label
+                  ><label
+                    ><input type="checkbox" id="pref-clubs" /> Club news and
+                    join-request updates</label
+                  ><button class="button button-primary" type="submit">
+                    Save preferences
+                  </button>
+                </form>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="page-admin"
+        class="page page-wrap"
+        aria-labelledby="admin-title"
+      >
+        <div class="page-intro">
+          <p class="eyebrow">CAMPUS CONTROL CENTRE</p>
+          <h1 id="admin-title">Admin dashboard</h1>
+          <p>Manage the content and community of CollegeConnect.</p>
+        </div>
+        <div id="admin-denied" class="empty-state hidden">
+          <h2>Admin access required</h2>
+          <p>Please sign in with the demo admin account to manage the site.</p>
+          <a href="#profile" class="button button-primary">Go to login</a>
+        </div>
+        <div id="admin-panel" class="hidden">
+          <div id="admin-stats" class="stats-grid"></div>
+          <div class="admin-layout">
+            <aside class="admin-tabs" aria-label="Admin sections">
+              <button class="active" data-admin-tab="overview">Overview</button
+              ><button data-admin-tab="events">Events</button
+              ><button data-admin-tab="library">Library & orders</button
+              ><button data-admin-tab="clubs">Clubs & requests</button
+              ><button data-admin-tab="gallery">Gallery & albums</button
+              ><button data-admin-tab="beyond-campus">Beyond Campus</button
+              ><button data-admin-tab="users">Users</button
+              ><button data-admin-tab="announcements">Announcements</button>
+            </aside>
+            <div class="admin-content" id="admin-content"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main">
+        <a class="brand brand-footer" href="#home"
+          ><span class="brand-mark">U<span>+</span></span
+          ><span>College<span class="brand-light">Connect</span></span></a
+        >
+        <p>Campus life, connected. Made for the moments that matter.</p>
+        <div class="footer-links">
+          <a href="#events">Events</a><a href="#library">Library</a
+          ><a href="#clubs">Clubs</a><a href="#gallery">Gallery</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="footer-year"></span> CollegeConnect Demo</span
+        ><span>Built with plain HTML, CSS & JavaScript</span>
+      </div>
+    </footer>
+
+    <div
+      id="toast-region"
+      class="toast-region"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+    <div
+      id="lightbox"
+      class="lightbox hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo viewer"
+    >
+      <button class="lightbox-close" aria-label="Close photo viewer">×</button
+      ><button class="lightbox-prev" aria-label="Previous photo">‹</button>
+      <figure>
+        <img id="lightbox-image" src="" alt="" />
+        <figcaption id="lightbox-caption"></figcaption>
+      </figure>
+      <button class="lightbox-next" aria-label="Next photo">›</button>
+    </div>
+    <dialog id="edit-dialog" class="edit-dialog">
+      <form method="dialog" id="edit-form">
+        <div class="dialog-heading">
+          <h2 id="edit-dialog-title">Edit item</h2>
+          <button class="icon-button" value="cancel" aria-label="Close">
+            ×
+          </button>
+        </div>
+        <div id="edit-dialog-fields" class="stack-form"></div>
+        <div class="dialog-actions">
+          <button class="button button-outline" value="cancel">Cancel</button
+          ><button class="button button-primary" id="edit-save" value="save">
+            Save changes
+          </button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>
