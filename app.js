@@ -26,6 +26,83 @@
     saveData();
   }
   function saveData(){ try { localStorage.setItem(STORE,JSON.stringify(data)); } catch(e){ toast("Storage is full. Try using smaller photos or deleting old gallery uploads.",true); } }
+
+  async function syncEventsFromSupabase(){
+    if(!supabase) return;
+    try {
+      const { data: remoteEvents, error } = await supabase.from("events").select("*");
+      if(error){
+        console.warn("Supabase events fetch notice:", error.message || error);
+        return;
+      }
+      if(remoteEvents && remoteEvents.length > 0){
+        data.events = remoteEvents.map(e => ({
+          id: String(e.id || id("e")),
+          title: e.title || "Untitled Event",
+          date: e.event_date || e.date || todayISO(),
+          time: e.event_time || e.time || "Time TBA",
+          location: e.location || "Central Quad",
+          organizer: e.organizer || "CollegeConnect",
+          category: e.category || "Campus Life",
+          description: e.description || "",
+          image: e.image_url || e.image || "https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=900&q=85"
+        }));
+        saveData();
+        renderEvents();
+        renderHome();
+        if(isAdmin()) renderAdmin();
+      } else if(data.events && data.events.length > 0) {
+        seedEventsToSupabase();
+      }
+    } catch(err){
+      console.warn("Could not sync events from Supabase:", err);
+    }
+  }
+
+  async function seedEventsToSupabase(){
+    if(!supabase || !data.events.length) return;
+    try {
+      const rows = data.events.map(e => ({
+        id: e.id,
+        title: e.title,
+        description: e.description,
+        location: e.location,
+        category: e.category,
+        organizer: e.organizer,
+        event_date: e.date,
+        event_time: e.time,
+        image_url: e.image
+      }));
+      await supabase.from("events").upsert(rows);
+    } catch(e){
+      console.warn("Note on Supabase event seeding:", e);
+    }
+  }
+
+  async function syncEventToSupabase(eventItem, action="upsert"){
+    if(!supabase) return;
+    try {
+      if(action === "delete"){
+        await supabase.from("events").delete().eq("id", eventItem.id);
+      } else {
+        const payload = {
+          id: eventItem.id,
+          title: eventItem.title,
+          description: eventItem.description,
+          location: eventItem.location,
+          category: eventItem.category,
+          organizer: eventItem.organizer,
+          event_date: eventItem.date,
+          event_time: eventItem.time,
+          image_url: eventItem.image
+        };
+        const { error } = await supabase.from("events").upsert(payload);
+        if(error) console.warn("Supabase event sync notice:", error.message || error);
+      }
+    } catch(err){
+      console.warn("Supabase event action failed:", err);
+    }
+  }
   function setAuthMode(mode){
     authMode = mode;
     const signup = mode === "signup";
@@ -485,7 +562,13 @@
       if(type==="photo"&&!obj.image){toast("Add an image URL or choose a file.",true);return;}
     }
     const arr=type==="event"?data.events:type==="book"?data.books:type==="club"?data.clubs:type==="photo"?data.photos:type==="externalEvent"?data.externalEvents:data.announcements;
-    arr.push(normalizeItem(type,obj));saveData();renderAdmin();renderAllPublic();toast(type[0].toUpperCase()+type.slice(1)+" added.");
+    const norm = normalizeItem(type,obj);
+    arr.push(norm);
+    saveData();
+    renderAdmin();
+    renderAllPublic();
+    if(type==="event") syncEventToSupabase(norm, "upsert");
+    toast(type[0].toUpperCase()+type.slice(1)+" added.");
   }
   async function saveEdited(){
     if(!pendingEdit)return;
@@ -504,14 +587,21 @@
         if(type==="photo")obj.image=imageData;
       }catch(e){toast(e.message,true);return;}
     }
-    arr[arr.findIndex(x=>x.id===itemId)]=normalizeItem(type,obj,item);
-    saveData();$("#edit-dialog").close();pendingEdit=null;renderAdmin();renderAllPublic();toast("Changes saved.");
+    const edited = normalizeItem(type,obj,item);
+    arr[arr.findIndex(x=>x.id===itemId)]=edited;
+    saveData();
+    $("#edit-dialog").close();
+    pendingEdit=null;
+    renderAdmin();
+    renderAllPublic();
+    if(type==="event") syncEventToSupabase(edited, "upsert");
+    toast("Changes saved.");
   }
   function deleteItem(type,itemId){
     const map={event:"events",book:"books",club:"clubs",photo:"photos",externalEvent:"externalEvents",announcement:"announcements"},arr=data[map[type]];const item=arr.find(x=>x.id===itemId);if(!item)return;
     if(!confirm(`Delete "${item.title||item.name}"? This cannot be undone.`))return;
     data[map[type]]=arr.filter(x=>x.id!==itemId);
-    if(type==="event"){data.rsvps=data.rsvps.filter(x=>x.eventId!==itemId);data.savedEvents=data.savedEvents.filter(x=>x.eventId!==itemId);}
+    if(type==="event"){data.rsvps=data.rsvps.filter(x=>x.eventId!==itemId);data.savedEvents=data.savedEvents.filter(x=>x.eventId!==itemId);syncEventToSupabase({id:itemId},"delete");}
     if(type==="book")data.orders=data.orders.filter(x=>x.bookId!==itemId);
     if(type==="club")data.joinRequests=data.joinRequests.filter(x=>x.clubId!==itemId);
     saveData();renderAdmin();renderAllPublic();toast("Item deleted.");
@@ -654,6 +744,22 @@
   $("#footer-year").textContent=new Date().getFullYear();
   $("#auth-mode-toggle").addEventListener("click",()=>setAuthMode(authMode==="signin"?"signup":"signin"));
   loadData();renderHeader();setPage(location.hash.slice(1)||"home");
-  if(supabase) restoreSupabaseSession();
-  else console.warn("Supabase is not configured. Update supabase-config.js before using real authentication.");
+  if(supabase) {
+    restoreSupabaseSession();
+    syncEventsFromSupabase();
+  } else {
+    console.warn("Supabase is not configured. Update supabase-config.js before using real authentication.");
+  }
+
+  // Cross-tab real-time sync (so updates in Admin tab instantly reflect in Student tabs)
+  window.addEventListener("storage", ev => {
+    if(ev.key === STORE){
+      try {
+        const saved = localStorage.getItem(STORE);
+        if(saved) data = JSON.parse(saved);
+        renderAllPublic();
+        if(isAdmin()) renderAdmin();
+      } catch(e){}
+    }
+  });
 })();

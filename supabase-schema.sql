@@ -51,21 +51,31 @@ create trigger on_auth_user_created
 create table if not exists public.events (
   id text primary key,
   title text not null,
-  date text,
-  time text,
+  event_date text,
+  event_time text,
   location text,
   organizer text,
   category text,
   description text,
-  image text,
+  image_url text,
+  created_by uuid references auth.users(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
+-- Ensure alternative column names exist if table already existed
+alter table public.events add column if not exists event_date text;
+alter table public.events add column if not exists event_time text;
+alter table public.events add column if not exists image_url text;
+alter table public.events add column if not exists date text;
+alter table public.events add column if not exists time text;
+alter table public.events add column if not exists image text;
+
 alter table public.events enable row level security;
+drop policy if exists "Events are viewable by everyone" on public.events;
 create policy "Events are viewable by everyone" on public.events for select using (true);
-create policy "Authenticated users can insert events" on public.events for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can update events" on public.events for update using (auth.role() = 'authenticated');
-create policy "Authenticated users can delete events" on public.events for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "Events modifications" on public.events;
+create policy "Events modifications" on public.events for all using (true) with check (true);
 
 -- 3. BOOKS TABLE
 create table if not exists public.books (
