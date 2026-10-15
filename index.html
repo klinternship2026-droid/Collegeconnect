@@ -7,13 +7,16 @@
     <title>CollegeConnect | Campus life, connected</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="data.js" defer></script>
+    <!-- Supabase browser client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="app.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <a class="brand" href="#home" aria-label="CollegeConnect home">
-        <img class="brand-logo" src="logo.jpg" alt="CollegeConnect — Campus life, connected" />
+        <img class="brand-logo" src="assets/logo.jpg" alt="CollegeConnect — Campus life, connected" />
       </a>
       <button
         id="menu-toggle"
@@ -313,62 +316,30 @@
               memberships.
             </p>
             <div class="demo-accounts">
-              <h3>Try a demo account</h3>
-              <button type="button" class="demo-account" data-demo="student">
-                <span>🎓</span
-                ><span
-                  ><b>Student account</b
-                  ><small>maya.student · Student</small></span
-                ><span>→</span></button
-              ><button type="button" class="demo-account" data-demo="admin">
-                <span>🛠️</span
-                ><span
-                  ><b>Admin account</b><small>admin.demo · Admin</small></span
-                ><span>→</span></button
-              ><button type="button" class="demo-account" data-demo="leader">
-                <span>🎨</span
-                ><span
-                  ><b>Club leader account</b
-                  ><small>alex.leader · Club Leader</small></span
-                ><span>→</span>
-              </button>
+              <h3>New to CollegeConnect?</h3>
+              <p>Create an account to access your student profile and campus features.</p>
             </div>
           </div>
           <div class="login-card">
-            <p class="eyebrow">DEMO ACCESS</p>
+            <p class="eyebrow">COLLEGECONNECT ACCOUNT</p>
             <h2 id="login-heading">Sign in</h2>
-            <p class="muted">No real passwords or personal data are used.</p>
+            <p class="muted" id="login-description">Sign in with the email and password for your CollegeConnect account.</p>
             <form id="login-form" class="stack-form">
-              <label
-                >Username<input
-                  id="login-username"
-                  autocomplete="username"
-                  required
-                  placeholder="e.g. maya.student" /></label
-              ><label
-                >Display name (for sign-up)<input
-                  id="signup-name"
-                  placeholder="Your name (optional)" /></label
-              ><label
-                >Role<select id="signup-role">
-                  <option value="student">Student</option>
-                  <option value="leader">Club Leader</option>
-                </select></label
-              >
+              <label id="signup-name-wrap" class="hidden">Full name
+                <input id="signup-name" autocomplete="name" placeholder="Your full name" />
+              </label>
+              <label>Email address
+                <input id="login-email" type="email" autocomplete="email" required placeholder="you@example.com" />
+              </label>
+              <label>Password
+                <input id="login-password" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" />
+              </label>
               <div class="button-row">
-                <button
-                  type="submit"
-                  class="button button-primary"
-                  id="login-submit"
-                >
-                  Sign in / Create demo account
-                </button>
+                <button type="submit" class="button button-primary" id="login-submit">Sign in</button>
+                <button type="button" class="button button-outline" id="auth-mode-toggle">Create account</button>
               </div>
             </form>
-            <p class="fine-print">
-              This is a local front-end demonstration. Do not enter real
-              personal information.
-            </p>
+            <p class="fine-print">Your account is authenticated by Supabase. New accounts start with the Student role.</p>
           </div>
         </div>
         <div id="profile-panel" class="hidden">
@@ -497,7 +468,7 @@
     <footer class="site-footer">
       <div class="footer-main">
         <a class="brand brand-footer" href="#home" aria-label="CollegeConnect home">
-          <img class="brand-logo brand-logo-footer" src="logo.jpg" alt="CollegeConnect — Campus life, connected" />
+          <img class="brand-logo brand-logo-footer" src="assets/logo.jpg" alt="CollegeConnect — Campus life, connected" />
         </a>
         <p>Campus life, connected. Made for the moments that matter.</p>
         <div class="footer-links">

@@ -1,4 +1,4 @@
-/* CollegeConnect front-end demo. No frameworks or build step required. */
+/* CollegeConnect frontend. Supabase handles authentication; other demo content remains local until database sync is added. */
 (() => {
   "use strict";
   const STORE = "CollegeConnectDemo_v1";
@@ -11,7 +11,13 @@
   const fmtDate = value => { if(!value) return "Date not set"; const d=new Date(value+"T12:00:00"); return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}); };
   const shortDate = value => { if(!value) return {day:"—",month:"TBA"}; const d=new Date(value+"T12:00:00"); return {day:d.getDate(),month:d.toLocaleDateString(undefined,{month:"short"})}; };
   const id = prefix => prefix+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
-  let data, currentUserId = sessionStorage.getItem(SESSION) || "", currentPage = "home", lightboxItems = [], lightboxIndex = 0, pendingEdit = null;
+  let data, currentUserId = "", currentPage = "home", lightboxItems = [], lightboxIndex = 0, pendingEdit = null;
+  const supabaseConfig = window.COLLEGECONNECT_SUPABASE || {};
+  const supabase = (window.supabase && supabaseConfig.url && supabaseConfig.anonKey &&
+    !supabaseConfig.url.includes("YOUR_PROJECT_URL") && !supabaseConfig.anonKey.includes("YOUR_PUBLISHABLE_KEY"))
+    ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey) : null;
+  let authMode = "signin";
+  let authProfileLoading = false;
 
   function loadData(){
     try { const saved=localStorage.getItem(STORE); data=saved?JSON.parse(saved):clone(window.UC_INITIAL_DATA); }
@@ -20,6 +26,57 @@
     saveData();
   }
   function saveData(){ try { localStorage.setItem(STORE,JSON.stringify(data)); } catch(e){ toast("Storage is full. Try using smaller photos or deleting old gallery uploads.",true); } }
+  function setAuthMode(mode){
+    authMode = mode;
+    const signup = mode === "signup";
+    $("#login-heading").textContent = signup ? "Create account" : "Sign in";
+    $("#login-description").textContent = signup ? "Create your CollegeConnect account using your email." : "Sign in with the email and password for your CollegeConnect account.";
+    $("#signup-name-wrap").classList.toggle("hidden", !signup);
+    $("#login-password").autocomplete = signup ? "new-password" : "current-password";
+    $("#login-submit").textContent = signup ? "Create account" : "Sign in";
+    $("#auth-mode-toggle").textContent = signup ? "Back to sign in" : "Create account";
+  }
+  async function loadSupabaseProfile(authUser){
+    if(!authUser || !supabase) return;
+    authProfileLoading = true;
+    try {
+      let { data: profile, error } = await supabase.from("profiles")
+        .select("id,full_name,role,avatar_url,student_id,faculty,year")
+        .eq("id", authUser.id).maybeSingle();
+      if(error) throw error;
+      if(!profile){
+        const { data: inserted, error: insertError } = await supabase.from("profiles")
+          .insert({id:authUser.id, full_name:authUser.user_metadata?.full_name || "", role:"student"})
+          .select("id,full_name,role,avatar_url,student_id,faculty,year").single();
+        if(insertError) throw insertError;
+        profile = inserted;
+      }
+      const mapped = {
+        id: authUser.id, username: authUser.email || "", name: profile.full_name || authUser.user_metadata?.full_name || (authUser.email||"Student").split("@")[0],
+        role: ["student","leader","admin"].includes(profile.role) ? profile.role : "student", active:true,
+        photo: profile.avatar_url || "", studentId: profile.student_id || "", email: authUser.email || "",
+        faculty: profile.faculty || "", year: profile.year || "", preferences:{events:true,library:true,clubs:true}
+      };
+      data.users = data.users.filter(u=>u.id !== authUser.id);
+      data.users.push(mapped);
+      currentUserId = authUser.id;
+      renderHeader();
+      renderProfile();
+    } catch(err) {
+      console.error("Could not load CollegeConnect profile:", err);
+      toast("Signed in, but the profile could not load. Check your Supabase profiles policies.", true);
+    } finally { authProfileLoading = false; }
+  }
+  async function restoreSupabaseSession(){
+    if(!supabase) return;
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if(error){ console.error(error); return; }
+    if(session?.user) await loadSupabaseProfile(session.user);
+    supabase.auth.onAuthStateChange((event, session) => {
+      if(event === "SIGNED_OUT"){ currentUserId=""; renderHeader(); renderProfile(); }
+      if(event === "SIGNED_IN" && session?.user) setTimeout(()=>loadSupabaseProfile(session.user),0);
+    });
+  }
   function user(){ return data.users.find(u=>u.id===currentUserId && u.active) || null; }
   function requireUser(){ if(!user()){ location.hash="#profile"; toast("Please sign in first."); return false; } return true; }
   function isAdmin(){ return user()?.role==="admin"; }
@@ -273,11 +330,28 @@
     if(t.matches("[data-deactivate]")){const u=data.users.find(x=>x.id===t.dataset.deactivate);if(!u)return;if(u.id===user()?.id){toast("You cannot deactivate your current account.",true);return;}if(!confirm(`${u.active?"Deactivate":"Activate"} ${u.name}?`))return;u.active=!u.active;saveData();renderAdmin();renderHeader();toast("User status updated.");return;}
     if(t.matches("[data-toggle-announcement]")){const a=data.announcements.find(x=>x.id===t.dataset.toggleAnnouncement);if(a){a.active=!a.active;saveData();renderAdmin();renderHeader();toast("Announcement visibility updated.");}return;}
     if(t.matches("[data-profile-tab]")){const target=t.dataset.profileTab;const el=$("#profile-"+target+"-section");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return;}
-    if(t.matches("#logout-button")){currentUserId="";sessionStorage.removeItem(SESSION);renderHeader();renderProfile();go("home");toast("You have been logged out.");return;}
+    if(t.matches("#logout-button")){if(supabase)await supabase.auth.signOut();currentUserId="";renderHeader();renderProfile();go("home");toast("You have been logged out.");return;}
   });
   document.addEventListener("submit",async ev=>{
     const form=ev.target;
-    if(form.matches("#login-form")){ev.preventDefault();const username=$("#login-username").value.trim().toLowerCase();let found=data.users.find(u=>u.username.toLowerCase()===username&&u.active);if(!found){if(!username){toast("Enter a username.",true);return;}found={id:id("u"),username,name:$("#signup-name").value.trim()||username.replace(/[._-]/g," ").replace(/\b\w/g,c=>c.toUpperCase()),role:$("#signup-role").value,active:true,photo:"",studentId:"",email:"",faculty:"",year:"",preferences:{events:true,library:true,clubs:true}};data.users.push(found);toast("Demo account created.");}currentUserId=found.id;sessionStorage.setItem(SESSION,currentUserId);saveData();renderHeader();renderProfile();go(found.role==="admin"?"admin":"profile");toast("Welcome, "+found.name+"!");return;}
+    if(form.matches("#login-form")){ev.preventDefault();
+      if(!supabase){toast("Supabase is not configured yet. Add your Project URL and Publishable key to supabase-config.js.",true);return;}
+      const email=$("#login-email").value.trim(), password=$("#login-password").value, fullName=$("#signup-name").value.trim();
+      try {
+        if(authMode==="signup"){
+          const {data: result,error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName}}});
+          if(error) throw error;
+          if(result.session && result.user){await loadSupabaseProfile(result.user);go("profile");toast("Account created successfully.");}
+          else toast("Account created. Check your email to confirm it, then sign in.");
+        } else {
+          const {data: result,error}=await supabase.auth.signInWithPassword({email,password});
+          if(error) throw error;
+          await loadSupabaseProfile(result.user);
+          go("profile");toast("Welcome to CollegeConnect!");
+        }
+      } catch(err){toast(err.message || "Authentication failed. Please try again.",true);}
+      return;
+    }
     if(form.matches("#reserve-form")){ev.preventDefault();if(!requireUser())return;const bookId=$("#reserve-book").value,pickupDate=$("#pickup-date").value;if(!bookId||!pickupDate){toast("Choose a book and pickup date.",true);return;}if(pickupDate<todayISO()){toast("Pickup date cannot be in the past.",true);return;}data.orders.push({id:id("o"),bookId,userId:user().id,pickupDate,note:$("#reserve-note").value.trim(),status:"Pending",created:todayISO()});saveData();form.reset();renderBooks();renderProfile();toast("Reservation submitted. Status: Pending.");return;}
     if(form.matches("#profile-form")){ev.preventDefault();const u=user();if(!u)return;Object.assign(u,{name:$("#profile-name").value.trim(),photo:$("#profile-photo").value.trim(),studentId:$("#profile-student-id").value.trim(),email:$("#profile-email").value.trim(),faculty:$("#profile-faculty").value.trim(),year:$("#profile-year").value});saveData();renderProfile();renderHeader();toast("Profile saved.");return;}
     if(form.matches("#preferences-form")){ev.preventDefault();const u=user();if(!u)return;u.preferences={events:$("#pref-events").checked,library:$("#pref-library").checked,clubs:$("#pref-clubs").checked};saveData();toast("Notification preferences saved.");return;}
@@ -318,5 +392,8 @@
   document.addEventListener("keydown",ev=>{if($("#lightbox").classList.contains("hidden"))return;if(ev.key==="Escape"){$("#lightbox").classList.add("hidden");document.body.style.overflow="";}if(ev.key==="ArrowLeft")moveLightbox(-1);if(ev.key==="ArrowRight")moveLightbox(1);});
   window.addEventListener("hashchange",()=>setPage(location.hash.slice(1)||"home"));
   $("#footer-year").textContent=new Date().getFullYear();
+  $("#auth-mode-toggle").addEventListener("click",()=>setAuthMode(authMode==="signin"?"signup":"signin"));
   loadData();renderHeader();setPage(location.hash.slice(1)||"home");
+  if(supabase) restoreSupabaseSession();
+  else console.warn("Supabase is not configured. Update supabase-config.js before using real authentication.");
 })();
