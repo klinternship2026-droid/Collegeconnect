@@ -55,10 +55,18 @@ window.UC_INITIAL_DATA = {
     {id:"p11",title:"Meet the makers",caption:"Students show what they have been creating.",category:"Arts & Culture",album:"Arts Week",image:"https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1100&q=85"},
     {id:"p12",title:"Small steps, shared future",caption:"The Eco Circle gets its hands dirty.",category:"Community",album:"Eco Circle",image:"https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?auto=format&fit=crop&w=1100&q=85"}
   ],
-  orders: [],
-  rsvps: [],
+  orders: [
+    {id:"o-demo-1",bookId:"b1",userId:"u-student",pickupDate:"2026-10-24",note:"Research project reading",status:"Pending",created:"2026-10-16"}
+  ],
+  rsvps: [
+    {id:"r-demo-1",eventId:"e1",userId:"u-student",date:"2026-10-15"},
+    {id:"r-demo-2",eventId:"e1",userId:"u-leader",date:"2026-10-15"},
+    {id:"r-demo-3",eventId:"e2",userId:"u-sam",date:"2026-10-16"}
+  ],
   savedEvents: [],
-  joinRequests: [],
+  joinRequests: [
+    {id:"jr-demo-1",clubId:"c1",userId:"u-sam",status:"Pending",date:"2026-10-16"}
+  ],
   announcements: [
     {id:"a1",title:"Welcome to CollegeConnect",message:"Explore the demo campus portal, try a demo account, and discover what is happening around campus.",active:true,date:"2026-10-15"}
   ],

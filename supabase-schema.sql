@@ -22,14 +22,18 @@ create table if not exists public.profiles (
 -- Profiles RLS
 alter table public.profiles enable row level security;
 
+drop policy if exists "Public profiles are viewable by everyone" on public.profiles;
 create policy "Public profiles are viewable by everyone" 
   on public.profiles for select using (true);
 
+drop policy if exists "Users can insert their own profile" on public.profiles;
 create policy "Users can insert their own profile" 
   on public.profiles for insert with check (auth.uid() = id);
 
-create policy "Users can update their own profile" 
-  on public.profiles for update using (auth.uid() = id);
+drop policy if exists "Users can update their own profile" on public.profiles;
+drop policy if exists "Profiles update policy" on public.profiles;
+create policy "Profiles update policy" 
+  on public.profiles for update using (true) with check (true);
 
 -- Auto-create profile trigger on sign up
 create or replace function public.handle_new_user()
@@ -90,10 +94,11 @@ create table if not exists public.books (
 );
 
 alter table public.books enable row level security;
+drop policy if exists "Books are viewable by everyone" on public.books;
 create policy "Books are viewable by everyone" on public.books for select using (true);
-create policy "Authenticated users can insert books" on public.books for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can update books" on public.books for update using (auth.role() = 'authenticated');
-create policy "Authenticated users can delete books" on public.books for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "Books modifications" on public.books;
+create policy "Books modifications" on public.books for all using (true) with check (true);
 
 -- 4. CLUBS TABLE
 create table if not exists public.clubs (
@@ -110,10 +115,11 @@ create table if not exists public.clubs (
 );
 
 alter table public.clubs enable row level security;
+drop policy if exists "Clubs are viewable by everyone" on public.clubs;
 create policy "Clubs are viewable by everyone" on public.clubs for select using (true);
-create policy "Authenticated users can insert clubs" on public.clubs for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can update clubs" on public.clubs for update using (auth.role() = 'authenticated');
-create policy "Authenticated users can delete clubs" on public.clubs for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "Clubs modifications" on public.clubs;
+create policy "Clubs modifications" on public.clubs for all using (true) with check (true);
 
 -- 5. PHOTOS / GALLERY TABLE
 create table if not exists public.photos (
@@ -127,9 +133,11 @@ create table if not exists public.photos (
 );
 
 alter table public.photos enable row level security;
+drop policy if exists "Photos are viewable by everyone" on public.photos;
 create policy "Photos are viewable by everyone" on public.photos for select using (true);
-create policy "Authenticated users can insert photos" on public.photos for insert with check (auth.role() = 'authenticated');
-create policy "Authenticated users can delete photos" on public.photos for delete using (auth.role() = 'authenticated');
+
+drop policy if exists "Photos modifications" on public.photos;
+create policy "Photos modifications" on public.photos for all using (true) with check (true);
 
 -- 6. ANNOUNCEMENTS TABLE
 create table if not exists public.announcements (
@@ -142,14 +150,17 @@ create table if not exists public.announcements (
 );
 
 alter table public.announcements enable row level security;
+drop policy if exists "Announcements are viewable by everyone" on public.announcements;
 create policy "Announcements are viewable by everyone" on public.announcements for select using (true);
-create policy "Authenticated users can manage announcements" on public.announcements for all using (auth.role() = 'authenticated');
+
+drop policy if exists "Announcements modifications" on public.announcements;
+create policy "Announcements modifications" on public.announcements for all using (true) with check (true);
 
 -- 7. ORDERS / BOOK RESERVATIONS TABLE
 create table if not exists public.orders (
   id text primary key,
-  book_id text references public.books(id) on delete cascade,
-  user_id uuid references auth.users(id) on delete cascade,
+  book_id text,
+  user_id text,
   pickup_date text,
   note text,
   status text default 'Pending',
@@ -157,33 +168,81 @@ create table if not exists public.orders (
 );
 
 alter table public.orders enable row level security;
-create policy "Users can view their own reservations" on public.orders for select using (auth.uid() = user_id or auth.role() = 'authenticated');
-create policy "Users can create reservations" on public.orders for insert with check (auth.uid() = user_id);
-create policy "Users can update reservations" on public.orders for update using (auth.uid() = user_id or auth.role() = 'authenticated');
+drop policy if exists "Users can view their own reservations" on public.orders;
+drop policy if exists "Users can create reservations" on public.orders;
+drop policy if exists "Users can update reservations" on public.orders;
+drop policy if exists "Orders viewable by everyone" on public.orders;
+create policy "Orders viewable by everyone" on public.orders for select using (true);
+
+drop policy if exists "Orders modifications" on public.orders;
+create policy "Orders modifications" on public.orders for all using (true) with check (true);
 
 -- 8. RSVPS TABLE
 create table if not exists public.rsvps (
   id text primary key,
-  event_id text references public.events(id) on delete cascade,
-  user_id uuid references auth.users(id) on delete cascade,
+  event_id text,
+  user_id text,
   date text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
 alter table public.rsvps enable row level security;
-create policy "RSVPs are viewable by authenticated users" on public.rsvps for select using (auth.role() = 'authenticated');
-create policy "Users can manage their own RSVPs" on public.rsvps for all using (auth.uid() = user_id);
+drop policy if exists "RSVPs are viewable by authenticated users" on public.rsvps;
+drop policy if exists "Users can manage their own RSVPs" on public.rsvps;
+drop policy if exists "RSVPs viewable by everyone" on public.rsvps;
+create policy "RSVPs viewable by everyone" on public.rsvps for select using (true);
+
+drop policy if exists "RSVPs modifications" on public.rsvps;
+create policy "RSVPs modifications" on public.rsvps for all using (true) with check (true);
 
 -- 9. JOIN REQUESTS TABLE
 create table if not exists public.join_requests (
   id text primary key,
-  club_id text references public.clubs(id) on delete cascade,
-  user_id uuid references auth.users(id) on delete cascade,
+  club_id text,
+  user_id text,
   status text default 'Pending',
   date text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
 alter table public.join_requests enable row level security;
-create policy "Join requests viewable by authenticated users" on public.join_requests for select using (auth.role() = 'authenticated');
-create policy "Users can manage their own join requests" on public.join_requests for all using (auth.uid() = user_id);
+drop policy if exists "Join requests viewable by authenticated users" on public.join_requests;
+drop policy if exists "Users can manage their own join requests" on public.join_requests;
+drop policy if exists "Join requests viewable by everyone" on public.join_requests;
+create policy "Join requests viewable by everyone" on public.join_requests for select using (true);
+
+drop policy if exists "Join requests modifications" on public.join_requests;
+create policy "Join requests modifications" on public.join_requests for all using (true) with check (true);
+
+-- 10. SITE CONTENT TABLE (Centralized cross-device synchronization)
+create table if not exists public.site_content (
+  content_key text primary key,
+  payload jsonb default '[]'::jsonb,
+  updated_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table public.site_content enable row level security;
+drop policy if exists "Site content is viewable by everyone" on public.site_content;
+create policy "Site content is viewable by everyone" on public.site_content for select using (true);
+
+drop policy if exists "Site content modifications" on public.site_content;
+create policy "Site content modifications" on public.site_content for all using (true) with check (true);
+
+-- 11. STORAGE BUCKET (collegeconnect-media)
+-- Creates the bucket if it does not already exist:
+insert into storage.buckets (id, name, public)
+values ('collegeconnect-media', 'collegeconnect-media', true)
+on conflict (id) do update set public = true;
+
+-- Storage bucket RLS policies for collegeconnect-media
+drop policy if exists "Public media view" on storage.objects;
+create policy "Public media view" on storage.objects
+  for select using (bucket_id = 'collegeconnect-media');
+
+drop policy if exists "Media upload allow" on storage.objects;
+create policy "Media upload allow" on storage.objects
+  for insert with check (bucket_id = 'collegeconnect-media');
+
+drop policy if exists "Media update allow" on storage.objects;
+create policy "Media update allow" on storage.objects
+  for update using (bucket_id = 'collegeconnect-media');
